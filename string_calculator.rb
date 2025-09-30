@@ -2,26 +2,29 @@ class StringCalculator
     def self.add(numbers)
       return 0 if numbers == ""
   
-      delimiter = /,|\n/  # default delimiters as regex
-      # detect custom delimiter syntax
+      delimiter = /,|\n/
       if numbers.start_with?("//")
-        # format: "//<delim>\n<rest>"
         parts = numbers.split("\n", 2)
-        delim_part = parts[0][2..-1]   # after //
-        rest = parts[1]
+        delim_part = parts[0][2..-1]
+        numbers = parts[1]
         delimiter = Regexp.escape(delim_part)
-        numbers = rest
       end
   
-      normalized = numbers.gsub(/\n/, ",")
-      # If custom delimiter, split by that delimiter instead
-      if delimiter.is_a?(String)
-        parts = numbers.split(delimiter)
-      else
-        parts = normalized.split(/,/)
+      # Split with both newline and comma if no custom delim
+      tokens = if delimiter.is_a?(String)
+                 numbers.split(delimiter)
+               else
+                 numbers.gsub("\n", ",").split(",")
+               end
+  
+      ints = tokens.map(&:to_i)
+  
+      negatives = ints.select(&:negative?)
+      if negatives.any?
+        raise "negative numbers not allowed: #{negatives.join(', ')}"
       end
   
-      parts.map(&:to_i).sum
+      ints.sum
     end
   end
   
